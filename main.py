@@ -15,6 +15,8 @@ pygame.display.set_caption('particle system test')
 clock = pygame.time.Clock()
 FPS = 120
 
+ballRadius = 8
+maxBallDiameter = ballRadius * 2
 
 
 def draw_text(text, size, text_color, x, y):
@@ -58,50 +60,62 @@ class Ball:
         self.x += self.velX
         self.y += self.velY
         
-    def collisionDetection(self, balls):
-        for ball in balls:
-            if self != ball:
-                dx = self.x - ball.x
-                dy = self.y - ball.y
-                distance = math.sqrt((dx**2 + dy**2))
-                min_distance = self.size + ball.size
-
+    def collisionDetection(self, grid, cell_size):
+        
+        grid_x = int(self.x // cell_size)
+        grid_y = int(self.y // cell_size)
+        
+        for dx in [-1, 0, 1]:
+            for dy in [-1, 0, 1]:
+                neighbour_x = grid_x + dx
+                neighbour_y = grid_y + dy
                 
-                if distance < min_distance:
-                    
-                    overlap = min_distance - distance
-                    angle = math.atan2(dy, dx)
-                    self.x += math.cos(angle) * (overlap / 2)
-                    self.y += math.sin(angle) * (overlap / 2)
-                    ball.x -= math.cos(angle) * (overlap / 2)
-                    ball.y -= math.sin(angle) * (overlap / 2)
-
-                    
-                    normal = (dx / distance, dy / distance)
-                    tangent = (-normal[1], normal[0])
-
-                    
-                    self_normal_velocity = self.velX * normal[0] + self.velY * normal[1]
-                    ball_normal_velocity = ball.velX * normal[0] + ball.velY * normal[1]
-                    self_tangent_velocity = self.velX * tangent[0] + self.velY * tangent[1]
-                    ball_tangent_velocity = ball.velX * tangent[0] + ball.velY * tangent[1]
-
-                    
-                    self_normal_velocity, ball_normal_velocity = ball_normal_velocity, self_normal_velocity
-
-                    
-                    self.velX = self_tangent_velocity * tangent[0] + self_normal_velocity * normal[0]
-                    self.velY = self_tangent_velocity * tangent[1] + self_normal_velocity * normal[1]
-                    ball.velX = ball_tangent_velocity * tangent[0] + ball_normal_velocity * normal[0]
-                    ball.velY = ball_tangent_velocity * tangent[1] + ball_normal_velocity * normal[1]
                 
+            if (neighbour_x, neighbour_y) in grid:
+                for ball in grid[(neighbour_x, neighbour_y)]:
+                    if self != ball:
+                        dx = self.x - ball.x
+                        dy = self.y - ball.y
+                        distance = math.sqrt((dx**2 + dy**2))
+                        min_distance = self.size + ball.size
+
+                        
+                        if distance < min_distance:
+                            
+                            overlap = min_distance - distance
+                            angle = math.atan2(dy, dx)
+                            self.x += math.cos(angle) * (overlap / 2)
+                            self.y += math.sin(angle) * (overlap / 2)
+                            ball.x -= math.cos(angle) * (overlap / 2)
+                            ball.y -= math.sin(angle) * (overlap / 2)
+
+                            
+                            normal = (dx / distance, dy / distance)
+                            tangent = (-normal[1], normal[0])
+
+                            
+                            self_normal_velocity = self.velX * normal[0] + self.velY * normal[1]
+                            ball_normal_velocity = ball.velX * normal[0] + ball.velY * normal[1]
+                            self_tangent_velocity = self.velX * tangent[0] + self.velY * tangent[1]
+                            ball_tangent_velocity = ball.velX * tangent[0] + ball.velY * tangent[1]
+
+                            
+                            self_normal_velocity, ball_normal_velocity = ball_normal_velocity, self_normal_velocity
+
+                            
+                            self.velX = self_tangent_velocity * tangent[0] + self_normal_velocity * normal[0]
+                            self.velY = self_tangent_velocity * tangent[1] + self_normal_velocity * normal[1]
+                            ball.velX = ball_tangent_velocity * tangent[0] + ball_normal_velocity * normal[0]
+                            ball.velY = ball_tangent_velocity * tangent[1] + ball_normal_velocity * normal[1]
+
+grid = {}
+cellSize = maxBallDiameter          
 
 balls = []
 createBall = False
 
-def makeBalls(sizeMin, sizeMax):
+def makeBalls(size):
     if createBall:
-        size = randomNum(sizeMin, sizeMax)
         mousePos = pygame.mouse.get_pos()
         ball = Ball(
             mousePos[0],
@@ -132,13 +146,22 @@ while run:
     clock.tick(FPS)
     
     screen.fill("white")
-    makeBalls(5, 15)
+    makeBalls(ballRadius)
+    
+    grid = {}
+    for ball in balls:
+        grid_x = int(ball.x // cellSize)
+        grid_y = int(ball.y // cellSize)
+        if (grid_x, grid_y) not in grid:
+            grid[(grid_x, grid_y)] = []
+        grid[(grid_x, grid_y)].append(ball)
     
     
     for ball in balls:
         ball.draw()
         ball.update()
-        ball.collisionDetection(balls)
+        ball.collisionDetection(grid, cellSize)
+        
     
     draw_text(f"Ball count: {len(balls)}", 20, black, 0, 0)
     draw_text(f"Simulation speed: {str(FPS)}", 20, black, 0, 20)
