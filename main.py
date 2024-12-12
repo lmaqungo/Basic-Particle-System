@@ -4,6 +4,10 @@ import math
 
 pygame.init()
 
+# =====================
+# Initialize Variables
+# =====================
+
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = int(SCREEN_WIDTH * 9/16)
 
@@ -33,6 +37,18 @@ def randomColor():
 
 
 class Ball:
+    """
+    Represents a ball in the simulation
+    
+    Attributes:
+        x (int): The x-coordinate of the ball.
+        y (int): The y-coordinate of the ball.
+        velX (int): The x-velocity of the ball.
+        velY (int): The y-velocity of the ball.
+        color (pygame.color.Color): The colour of the ball.
+        radius (int): The radius of the ball.
+    
+    """
     def __init__(self, x, y, velX, velY, color, size):
         self.x = x
         self.y = y
@@ -45,6 +61,12 @@ class Ball:
         pygame.draw.circle(screen, self.color, (self.x, self.y), self.size)
         
     def update(self):
+        """
+        Checks for collisions between the window's boundaries and the ball, 
+        and inverts the ball's velocity when they happen, to simulate bouncing.
+        
+        Updates the position of the ball based on its velocity
+        """
         if (self.x + self.size) >= SCREEN_WIDTH:
             self.velX = -(self.velX)  
             
@@ -60,7 +82,25 @@ class Ball:
         self.x += self.velX
         self.y += self.velY
         
-    def collisionDetection(self, grid, cell_size):
+    def collision(self, grid, cell_size):
+        
+        """
+        Facilitates collisions between balls
+        
+        Args:
+            grid (dict): Stores grid data
+            cell_size (int): Size of grid cells
+        
+        The method is run for each ball in the array of ball objects.
+        
+        Collision Detection: 
+            Collisions are only checked between balls that are close to each other
+            Uses a grid system to achieve this, by only checking for collisions between a ball
+            and other balls that occupy neighbouring cells. This allows simulations with more balls.
+        
+        Collision Resolution:
+            To simulate elastic collisions, when two balls collide, their velocities are swopped.
+        """
         
         grid_x = int(self.x // cell_size)
         grid_y = int(self.y // cell_size)
@@ -109,7 +149,8 @@ class Ball:
                             ball.velY = ball_tangent_velocity * tangent[1] + ball_normal_velocity * normal[1]
 
 grid = {}
-cellSize = maxBallDiameter          
+
+cellSize = (maxBallDiameter)         
 
 balls = []
 createBall = False
@@ -160,13 +201,14 @@ while run:
     for ball in balls:
         ball.draw()
         ball.update()
-        ball.collisionDetection(grid, cellSize)
+        ball.collision(grid, cellSize)
         
     
     draw_text(f"Ball count: {len(balls)}", 20, black, 0, 0)
     draw_text(f"Simulation speed: {str(FPS)}", 20, black, 0, 20)
     draw_text("\'Up\' arrow key to speed up simulation", 14, black, 0, SCREEN_HEIGHT - 40)
     draw_text("\'Down\' arrow key to speed up simulation", 14, black, 0, SCREEN_HEIGHT - 20)
+    draw_text("Left mouse button to draw balls", 14, black, 0, SCREEN_HEIGHT - 60 )
     
     
     for event in pygame.event.get():
