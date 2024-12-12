@@ -2,7 +2,7 @@
 
 Python particle system with elastic collisions between particles and boundaries. 
 
-<img src= "https://raw.githubusercontent.com/lmaqungo/Basic-Particle-System/refs/heads/main/media/demo.png" alt = "game preview" width="390">
+<img src= "https://raw.githubusercontent.com/lmaqungo/Basic-Particle-System/refs/heads/main/media/demo.png" alt = "game preview" width="600">
 
 ## Windows Install        
 
